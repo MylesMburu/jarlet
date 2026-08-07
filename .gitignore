@@ -39,3 +39,11 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# prisma generated client output
+/generated/
+
+# editor-injected skill definitions (auto-downloaded tooling)
+/.agents/
+/.claude/
+skills-lock.json
