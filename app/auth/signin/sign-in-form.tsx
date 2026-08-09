@@ -12,7 +12,11 @@ export default function SignInForm() {
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setStatus("sending");
-    const result = await signIn("nodemailer", { email, redirect: false });
+    const result = await signIn("nodemailer", {
+      email,
+      redirect: false,
+      callbackUrl: "/dashboard",
+    });
     if (result?.error) {
       setStatus("error");
     } else {

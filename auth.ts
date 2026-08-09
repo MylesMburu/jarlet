@@ -11,6 +11,18 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   pages: {
     signIn: "/auth/signin",
   },
+  callbacks: {
+    jwt({ token, user }) {
+      if (user) token.sub = user.id;
+      return token;
+    },
+    session({ session, token }) {
+      if (session.user && token.sub) {
+        session.user.id = token.sub;
+      }
+      return session;
+    },
+  },
   providers: [
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID ?? "unset",
@@ -18,17 +30,24 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       allowDangerousEmailAccountLinking: true,
     }),
     Email({
-      server: {
-        host: process.env.SMTP_HOST ?? "localhost",
-        port: Number(process.env.SMTP_PORT ?? 1025),
-        auth:
-          process.env.SMTP_USER && process.env.SMTP_PASS
-            ? {
-                user: process.env.SMTP_USER,
-                pass: process.env.SMTP_PASS,
-              }
-            : undefined,
-      },
+      server:
+        process.env.SMTP_HOST
+          ? {
+              host: process.env.SMTP_HOST,
+              port: Number(process.env.SMTP_PORT ?? 587),
+              secure: process.env.SMTP_SECURE === "true",
+              ...(process.env.SMTP_USER && process.env.SMTP_PASS
+                ? {
+                    auth: {
+                      user: process.env.SMTP_USER,
+                      pass: process.env.SMTP_PASS,
+                    },
+                  }
+                : {}),
+            }
+          : {
+              jsonTransport: true,
+            },
       from: process.env.EMAIL_FROM ?? "Letter Jar <no-reply@letterjar.local>",
       sendVerificationRequest({ identifier, url }) {
         void sendEmail({

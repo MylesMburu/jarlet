@@ -1,7 +1,15 @@
 import { Suspense } from "react";
+import { redirect } from "next/navigation";
+import { auth } from "@/auth";
 import SignInForm from "./sign-in-form";
 
-export default function SignInPage() {
+export default async function SignInPage() {
+  const session = await auth();
+
+  if (session?.user) {
+    redirect("/dashboard");
+  }
+
   return (
     <main className="flex flex-1 items-center justify-center bg-zinc-50 px-4">
       <div className="w-full max-w-sm rounded-2xl border border-zinc-200 bg-white p-8 shadow-sm">
