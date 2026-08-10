@@ -1,6 +1,6 @@
-# Letter Jar — project context
+# Jarlet — project context
 
-A web app for creating "letter jars": a creator starts a jar, invites friends
+Jarlet is a web app for creating "letter jars": a creator starts a jar, invites friends
 to add private letters via a link, then seals and delivers the jar to a
 recipient who is the only one who can read it (unless they later choose to
 make it public).
@@ -54,6 +54,96 @@ pages — there is no "reveal identity" feature.
 - Next.js (App Router), Postgres via Prisma, NextAuth/Auth.js (creator-only
   auth), Cloudflare R2 or S3 for media (presigned direct uploads from
   browser), Resend or Postmark for email, deployed on Vercel.
+
+## Design system
+
+Two token sets, tied to the jar's emotional state, not applied globally as
+one static brand palette:
+
+**`sealed` set** — used for the creator dashboard, jar creation/management,
+the invite form, and any "this jar is closed" state. Muted, contained,
+private-feeling.
+- `ink` #2B2A33 — primary chrome, headers, dark surfaces
+- `seal` #7A2E38 — reserved ONLY for seal/send actions and their related
+  confirmations. Never reused for cancel, error, or generic primary buttons.
+- `parchment` #EDE6D6 — page background
+- `brass` #B8925A — borders, dividers, sparing accents
+- `sage` #7C8B7F — success/confirmation states (letter submitted, jar sent)
+- `ink-text` #4A4640 — body text on parchment
+
+**`reveal` set** — used for the recipient delivery page and the public jar
+page only. One register brighter/warmer than `sealed`, so the palette shift
+itself signals "you've crossed into the reveal moment."
+- `twilight` #3D3550 — dark surfaces on these pages, if used
+- `amber` #E3A857 — the one place full saturation is allowed; use for the
+  unsealing/reveal moment specifically, not scattered as a general accent
+- `glass` #6E9C99 — secondary accent, used for the public/private toggle
+- `cream` #F6F0E4 — page background
+- `rose` #C97B84 — anonymous-contributor badge (calm, not muted-to-invisible
+  — anonymity should not read as a disabled or lesser state)
+- `charcoal` #322E38 — body text on cream
+
+Rules to enforce in code, not just in the palette:
+- `seal` red is exclusive to seal/send actions.
+- Full-saturation `amber` is exclusive to the reveal moment (the recipient's
+  first open of a delivered jar) — not a general-purpose accent.
+- Which token set is active should be driven by the jar's `status` field
+  (`open`/`sealed` → sealed set; `delivered` and the public page → reveal
+  set), not hardcoded per page.
+
+## Typography
+
+Three fonts, each with one job — do not use any of them outside their role.
+
+- **Fraunces** — display/headings only (page titles, jar titles). Warm,
+  soft-serif, literary feel. Load weight 500, optical size range.
+- **Karla** — body text and all UI chrome (forms, buttons, dashboard, labels).
+  Weights 400/500.
+- **Caveat** — signature accent ONLY. Used exclusively for a signed
+  contributor's display name on a letter card/envelope. Anonymous letters
+  never use Caveat — they show "Anonymous" in plain Karla, no decorative
+  mark or fake signature. Do not use Caveat anywhere else (no taglines,
+  no headings, no buttons) — its whole value depends on staying rare.
+
+Google Fonts import: `Fraunces:opsz,wght@9..144,500`, `Karla:wght@400;500`,
+`Caveat:wght@500`.
+
+## Interaction & animation principles
+
+Borrow Duolingo's quality of "every action gets tangible, physical-feeling
+feedback" — but not its gamification mechanics (no streaks, XP, badges, or
+engagement nudges; Jarlet is a one-off sentimental event, not a habit loop).
+
+Confirmed interactions to build:
+- **Letter submission** (contributor flow): on submit, animate the letter
+  folding/dropping into a small jar illustration, with visible feedback
+  that the jar's contents increased.
+- **Jar-fill visualization — creator dashboard ONLY.** A jar illustration
+  on the dashboard (per-jar, on its card or management page) visually fills
+  as letters are added, giving the creator a satisfying at-a-glance sense
+  of progress. This does NOT appear on the recipient delivery page or the
+  public page — those are one-time reveal moments, not progress trackers.
+- **Envelope-open interaction** (recipient/public letter view): letters
+  render as a grid of closed, fixed-size envelopes (max width ~170px,
+  height ~104px — real envelope proportions, never stretched to fill a
+  container). Grid is `repeat(auto-fit, minmax(150px, 1fr))` on tablet/
+  desktop, single column on mobile. Tapping an envelope opens it in a
+  centered overlay/modal above the grid — the grid itself never resizes
+  or reflows when a letter opens, so browsing stays stable regardless of
+  letter length. Inside the opened modal: text fades in first, then the
+  signature (Caveat for signed names, plain Karla "Anonymous" for
+  anonymous — no decorative mark). Only one letter open at a time; closing
+  it returns to the grid.
+- **Wax-seal press** on primary seal/send actions (already scoped
+  separately) — a brief circular stamp in the `seal` color expanding and
+  fading from the button's center.
+- **Homepage load sequence and ambient jar/letter loop** (already scoped
+  separately in the hero animation work).
+
+All animations respect `prefers-reduced-motion`: staggered/looping/ambient
+motion collapses to instant-appear; brief user-triggered feedback (stamp,
+envelope open) can keep a very short, low-amplitude transition but skip
+elaborate easing.
 
 ## Conventions
 

@@ -8,7 +8,7 @@ export function CopyLink({ url }: { url: string }) {
 
   return (
     <div className="flex items-center gap-2">
-      <code className="flex-1 truncate rounded-lg bg-zinc-100 px-3 py-2 text-xs text-zinc-600">
+      <code className="flex-1 truncate rounded-lg border border-line bg-surface px-3 py-2 text-xs text-muted">
         {url}
       </code>
       <button
@@ -20,8 +20,8 @@ export function CopyLink({ url }: { url: string }) {
         className={cn(
           "shrink-0 rounded-lg border px-3 py-2 text-xs font-medium transition-colors",
           copied
-            ? "border-emerald-200 bg-emerald-50 text-emerald-700"
-            : "border-zinc-300 bg-white text-zinc-700 hover:border-zinc-400"
+            ? "border-sage/40 bg-sage/10 text-sage"
+            : "border-input bg-surface text-body hover:border-heading"
         )}
       >
         {copied ? "Copied" : "Copy"}

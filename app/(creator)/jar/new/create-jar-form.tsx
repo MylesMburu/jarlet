@@ -25,40 +25,40 @@ export default function CreateJarForm() {
   return (
     <form action={formAction} className="space-y-6">
       <label className="block">
-        <span className="text-sm font-medium text-zinc-700">Title</span>
+        <span className="text-sm font-medium text-heading">Title</span>
         <input
           name="title"
           required
           placeholder="e.g. Message to Max on graduation"
-          className="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-zinc-500 focus:outline-none"
+          className="mt-1 w-full rounded-lg border border-input bg-surface px-3 py-2 text-sm focus:border-accent focus:outline-none"
         />
       </label>
 
       <label className="block">
-        <span className="text-sm font-medium text-zinc-700">Recipient name</span>
+        <span className="text-sm font-medium text-heading">Recipient name</span>
         <input
           name="recipientName"
           required
           placeholder="Who is this jar for?"
-          className="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-zinc-500 focus:outline-none"
+          className="mt-1 w-full rounded-lg border border-input bg-surface px-3 py-2 text-sm focus:border-accent focus:outline-none"
         />
       </label>
 
       <label className="block">
-        <span className="text-sm font-medium text-zinc-700">
+        <span className="text-sm font-medium text-heading">
           Prompt for contributors{" "}
-          <span className="font-normal text-zinc-400">(optional)</span>
+          <span className="font-normal text-muted">(optional)</span>
         </span>
         <textarea
           name="prompt"
           rows={3}
           placeholder="e.g. Share your favorite memory from high school"
-          className="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-zinc-500 focus:outline-none"
+          className="mt-1 w-full rounded-lg border border-input bg-surface px-3 py-2 text-sm focus:border-accent focus:outline-none"
         />
       </label>
 
       <fieldset>
-        <legend className="text-sm font-medium text-zinc-700">Seal mode</legend>
+        <legend className="text-sm font-medium text-heading">Seal mode</legend>
         <div className="mt-2 grid gap-2 sm:grid-cols-3">
           {sealModes.map((mode) => (
             <label
@@ -66,8 +66,8 @@ export default function CreateJarForm() {
               className={cn(
                 "cursor-pointer rounded-lg border p-3 transition-colors",
                 sealMode === mode.value
-                  ? "border-zinc-900 bg-zinc-50"
-                  : "border-zinc-200 bg-white hover:border-zinc-300"
+                  ? "border-accent bg-accent/5"
+                  : "border-line bg-surface hover:border-input"
               )}
             >
               <input
@@ -78,10 +78,10 @@ export default function CreateJarForm() {
                 onChange={() => setSealMode(mode.value)}
                 className="sr-only"
               />
-              <span className="block text-sm font-medium text-zinc-900">
+              <span className="block text-sm font-medium text-heading">
                 {mode.label}
               </span>
-              <span className="mt-1 block text-xs text-zinc-500">
+              <span className="mt-1 block text-xs text-muted">
                 {mode.hint}
               </span>
             </label>
@@ -91,19 +91,19 @@ export default function CreateJarForm() {
 
       {sealMode === "date" && (
         <label className="block">
-          <span className="text-sm font-medium text-zinc-700">Seal date</span>
+          <span className="text-sm font-medium text-heading">Seal date</span>
           <input
             name="sealDate"
             type="datetime-local"
             required
-            className="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-zinc-500 focus:outline-none"
+            className="mt-1 w-full rounded-lg border border-input bg-surface px-3 py-2 text-sm focus:border-accent focus:outline-none"
           />
         </label>
       )}
 
       {sealMode === "count" && (
         <label className="block">
-          <span className="text-sm font-medium text-zinc-700">
+          <span className="text-sm font-medium text-heading">
             Seal at letter count
           </span>
           <input
@@ -112,19 +112,19 @@ export default function CreateJarForm() {
             min={1}
             required
             placeholder="e.g. 10"
-            className="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-zinc-500 focus:outline-none"
+            className="mt-1 w-full rounded-lg border border-input bg-surface px-3 py-2 text-sm focus:border-accent focus:outline-none"
           />
         </label>
       )}
 
       {state.error && (
-        <p className="text-sm text-red-600">{state.error}</p>
+        <p className="text-sm font-medium text-heading">{state.error}</p>
       )}
 
       <button
         type="submit"
         disabled={pending}
-        className="w-full rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-700 disabled:opacity-50"
+        className="w-full rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50"
       >
         {pending ? "Creating…" : "Create jar"}
       </button>

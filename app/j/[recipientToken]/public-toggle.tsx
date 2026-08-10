@@ -18,13 +18,13 @@ export function PublicToggle({
   const [copied, setCopied] = useState(false);
 
   return (
-    <section className="rounded-2xl border border-zinc-200 bg-white p-6">
+    <section className="rounded-2xl border border-line bg-surface p-6">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-zinc-500">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">
             Public access
           </h2>
-          <p className="mt-1 text-sm text-zinc-600">
+          <p className="mt-1 text-sm text-body">
             {isPublic
               ? "This jar is public. Anyone with the link can read it."
               : "Making this jar public shares it with a link and notifies every contributor."}
@@ -44,10 +44,10 @@ export function PublicToggle({
             })
           }
           className={cn(
-            "rounded-lg px-4 py-2 text-sm font-medium text-white transition-colors disabled:opacity-50",
+            "rounded-lg px-4 py-2 text-sm font-medium transition-colors disabled:opacity-50",
             isPublic
-              ? "bg-zinc-500 hover:bg-zinc-600"
-              : "bg-emerald-600 hover:bg-emerald-700"
+              ? "border border-glass bg-surface text-glass hover:bg-glass/10"
+              : "bg-glass text-white hover:opacity-90"
           )}
         >
           {pending
@@ -64,14 +64,14 @@ export function PublicToggle({
               setCopied(true);
               setTimeout(() => setCopied(false), 2000);
             }}
-            className="rounded-lg border border-zinc-300 bg-white px-4 py-2 text-sm font-medium text-zinc-700 transition-colors hover:border-zinc-400"
+            className="rounded-lg border border-input bg-surface px-4 py-2 text-sm font-medium text-body transition-colors hover:border-heading"
           >
             {copied ? "Copied" : "Copy public link"}
           </button>
         )}
       </div>
 
-      {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
+      {error && <p className="mt-3 text-sm font-medium text-heading">{error}</p>}
     </section>
   );
 }

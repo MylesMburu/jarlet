@@ -1,26 +1,331 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@theme {
+  /* Sealed set — creator dashboard, management, invite form, closed states */
+  --color-ink: #2b2a33;
+  --color-seal: #7a2e38;
+  --color-parchment: #ede6d6;
+  --color-brass: #b8925a;
+  --color-sage: #7c8b7f;
+  --color-ink-text: #4a4640;
+
+  /* Reveal set — recipient delivery page and public jar page only */
+  --color-twilight: #3d3550;
+  --color-amber: #e3a857;
+  --color-glass: #6e9c99;
+  --color-cream: #f6f0e4;
+  --color-rose: #c97b84;
+  --color-charcoal: #322e38;
+
+  /* Typography — one job per font (see AGENTS.md) */
+  --font-display: var(--font-fraunces);
+  --font-body: var(--font-karla);
+  --font-signature: var(--font-caveat);
+}
+
+/*
+  Role tokens resolve to whichever emotional set is active. The active set is
+  driven by the jar's status via [data-theme], never hardcoded per page.
+  Default (and any page without a data-theme) is the sealed set.
+*/
+:root,
+[data-theme="sealed"] {
+  --page: #ede6d6;
+  --surface: #fffbf2;
+  --heading: #2b2a33;
+  --body: #4a4640;
+  --muted: #6b6458;
+  --line: #b8925a;
+  --input: #cfc4ab;
+  --accent: #2b2a33;
+}
+
+[data-theme="reveal"] {
+  --page: #f6f0e4;
+  --surface: #fffbf0;
+  --heading: #3d3550;
+  --body: #322e38;
+  --muted: #625b68;
+  --line: #dcc9a4;
+  --input: #d8c7a3;
+  --accent: #3d3550;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-page: var(--page);
+  --color-surface: var(--surface);
+  --color-heading: var(--heading);
+  --color-body: var(--body);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-input: var(--input);
+  --color-accent: var(--accent);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--page);
+  color: var(--body);
+  font-family: var(--font-karla), ui-sans-serif, system-ui, sans-serif;
+}
+
+/* --- Homepage hero motion (sealed token set only) --- */
+
+@keyframes hero-rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.jar-rise {
+  opacity: 0;
+  animation: hero-rise 650ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: var(--rise-delay, 0ms);
+}
+
+.jar-rise--jar {
+  --rise-delay: 0ms;
+}
+
+.jar-rise--badge {
+  --rise-delay: 150ms;
+}
+
+.jar-rise--title {
+  --rise-delay: 300ms;
+}
+
+.jar-rise--body {
+  --rise-delay: 450ms;
+}
+
+.jar-rise--cta {
+  --rise-delay: 600ms;
+}
+
+@keyframes jar-letter {
+  0%,
+  5% {
+    opacity: 0;
+    translate: 0 -20px;
+  }
+  12% {
+    opacity: 1;
+    translate: 0 16px;
+  }
+  42% {
+    opacity: 1;
+    translate: 0 66px;
+  }
+  72% {
+    opacity: 1;
+    translate: 0 70px;
+  }
+  88%,
+  100% {
+    opacity: 0;
+    translate: 0 70px;
+  }
+}
+
+.jar-letter {
+  opacity: 0;
+  translate: 0 70px;
+  animation: jar-letter 4s linear 700ms infinite both;
+}
+
+@keyframes seal-press {
+  0% {
+    opacity: 0.9;
+    scale: 0.1;
+  }
+  55% {
+    opacity: 0.85;
+    scale: 1;
+  }
+  100% {
+    opacity: 0;
+    scale: 2.6;
+  }
+}
+
+.seal-stamp {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 10;
+  width: 1.5rem;
+  height: 1.5rem;
+  margin-top: -0.75rem;
+  margin-left: -0.75rem;
+  border-radius: 9999px;
+  background: var(--color-seal);
+  animation: seal-press 520ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  pointer-events: none;
+}
+
+.seal-stamp--on-red {
+  background: rgba(255, 255, 255, 0.55);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .jar-rise {
+    opacity: 1;
+    animation: none;
+  }
+  .jar-letter {
+    opacity: 1;
+    translate: 0 70px;
+    animation: none;
+  }
+  .seal-stamp {
+    animation: none;
+  }
+  .env-flap,
+  .env-pocket,
+  .env-body,
+  .env-signature {
+    transition: none;
+  }
+  .envelope .env-body {
+    transform: none;
+  }
+}
+
+/* --- Envelope-open letters (reveal pages) --- */
+
+.envelope {
+  perspective: 1200px;
+}
+
+.env-flap {
+  transform-origin: top center;
+  transition:
+    transform 480ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 300ms ease;
+}
+
+.env-pocket {
+  transition:
+    transform 520ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 300ms ease 40ms;
+}
+
+.env-body {
+  opacity: 0;
+  transform: translateY(8px);
+  transition:
+    opacity 380ms ease 240ms,
+    transform 380ms ease 240ms;
+}
+
+.env-signature {
+  opacity: 0;
+  transition: opacity 380ms ease 620ms;
+}
+
+.env-modal[data-open="true"] .env-flap {
+  transform: rotateX(-155deg);
+  opacity: 0;
+}
+
+.env-modal[data-open="true"] .env-pocket {
+  transform: translateY(105%);
+  opacity: 0;
+}
+
+.env-modal[data-open="true"] .env-body {
+  opacity: 1;
+  transform: none;
+}
+
+.env-modal[data-open="true"] .env-signature {
+  opacity: 1;
+}
+
+/* --- Letter submission confirmation (contributor flow) --- */
+
+@keyframes cjar-letter {
+  0% {
+    opacity: 0;
+    translate: 0 -34px;
+    scale: 1;
+  }
+  12% {
+    opacity: 1;
+    translate: 0 -8px;
+    scale: 1;
+  }
+  38% {
+    opacity: 1;
+    translate: 0 26px;
+    scale: 1;
+  }
+  58% {
+    opacity: 1;
+    translate: 0 48px;
+    scale: 1 0.5;
+  }
+  74% {
+    opacity: 0.6;
+    translate: 0 88px;
+    scale: 1 0.3;
+  }
+  88%,
+  100% {
+    opacity: 0;
+    translate: 0 88px;
+    scale: 1 0.3;
+  }
+}
+
+.cjar-letter {
+  opacity: 0;
+  translate: 0 84px;
+  scale: 1;
+  transform-box: fill-box;
+  transform-origin: bottom;
+  animation: cjar-letter 2.4s ease-in-out 150ms forwards;
+}
+
+@keyframes cjar-fill {
+  0%,
+  42% {
+    translate: 0 44px;
+    opacity: 0;
+  }
+  55% {
+    opacity: 1;
+  }
+  85%,
+  100% {
+    translate: 0 0;
+    opacity: 1;
+  }
+}
+
+.cjar-fill {
+  translate: 0 0;
+  opacity: 1;
+  animation: cjar-fill 2.4s ease-out 150ms forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cjar-letter,
+  .cjar-fill {
+    animation: none;
+  }
+  .cjar-letter {
+    opacity: 1;
+    translate: 0 84px;
+    scale: 1 0.4;
+  }
+  .cjar-fill {
+    translate: 0 0;
+    opacity: 1;
+  }
 }

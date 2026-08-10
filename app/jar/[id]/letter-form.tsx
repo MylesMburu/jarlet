@@ -2,6 +2,7 @@
 
 import { useActionState, useState } from "react";
 import { submitLetter } from "@/lib/actions/submit-letter";
+import { JarConfirmation } from "@/components/jar-confirmation";
 import { cn } from "@/lib/utils";
 
 export default function LetterForm({ inviteToken }: { inviteToken: string }) {
@@ -41,39 +42,43 @@ export default function LetterForm({ inviteToken }: { inviteToken: string }) {
   }
 
   return (
+    <>
+      {state.success ? (
+        <JarConfirmation />
+      ) : (
     <form action={formAction} className="space-y-5">
       <label className="block">
-        <span className="text-sm font-medium text-zinc-700">Your letter</span>
+        <span className="text-sm font-medium text-heading">Your letter</span>
         <textarea
           name="bodyText"
           required
           rows={6}
           maxLength={50_000}
           placeholder="What would you like to say?"
-          className="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-zinc-500 focus:outline-none"
+          className="mt-1 w-full rounded-lg border border-input bg-surface px-3 py-2 text-sm focus:border-accent focus:outline-none"
         />
       </label>
 
       <label className="block">
-        <span className="text-sm font-medium text-zinc-700">
+        <span className="text-sm font-medium text-heading">
           Photo or GIF{" "}
-          <span className="font-normal text-zinc-400">(optional)</span>
+          <span className="font-normal text-muted">(optional)</span>
         </span>
         <input
           type="file"
           accept="image/*,.gif"
           onChange={handleFile}
-          className="mt-1 block w-full text-sm text-zinc-500 file:mr-3 file:rounded-lg file:border-0 file:bg-zinc-100 file:px-3 file:py-2 file:text-sm file:font-medium file:text-zinc-700 hover:file:bg-zinc-200"
+          className="mt-1 block w-full text-sm text-muted file:mr-3 file:rounded-lg file:border-0 file:bg-line/20 file:px-3 file:py-2 file:text-sm file:font-medium file:text-heading hover:file:bg-line/30"
         />
         <input type="hidden" name="mediaUrl" value={mediaUrl ?? ""} />
-        {uploading && <p className="mt-2 text-xs text-zinc-500">Uploading…</p>}
+        {uploading && <p className="mt-2 text-xs text-muted">Uploading…</p>}
         {mediaUrl && (
-          <p className="mt-2 text-xs text-emerald-600">Attached.</p>
+          <p className="mt-2 text-xs text-sage">Attached.</p>
         )}
       </label>
 
       <fieldset>
-        <legend className="text-sm font-medium text-zinc-700">
+        <legend className="text-sm font-medium text-heading">
           How should you appear?
         </legend>
         <div className="mt-2 flex gap-2">
@@ -81,8 +86,8 @@ export default function LetterForm({ inviteToken }: { inviteToken: string }) {
             className={cn(
               "flex-1 cursor-pointer rounded-lg border px-3 py-2 text-center text-sm",
               displayMode === "signed"
-                ? "border-zinc-900 bg-zinc-50 text-zinc-900"
-                : "border-zinc-200 bg-white text-zinc-600"
+                ? "border-accent bg-accent/5 text-heading"
+                : "border-line bg-surface text-body"
             )}
           >
             <input
@@ -99,8 +104,8 @@ export default function LetterForm({ inviteToken }: { inviteToken: string }) {
             className={cn(
               "flex-1 cursor-pointer rounded-lg border px-3 py-2 text-center text-sm",
               displayMode === "anonymous"
-                ? "border-zinc-900 bg-zinc-50 text-zinc-900"
-                : "border-zinc-200 bg-white text-zinc-600"
+                ? "border-accent bg-accent/5 text-heading"
+                : "border-line bg-surface text-body"
             )}
           >
             <input
@@ -118,40 +123,42 @@ export default function LetterForm({ inviteToken }: { inviteToken: string }) {
 
       {displayMode === "signed" && (
         <label className="block">
-          <span className="text-sm font-medium text-zinc-700">Your name</span>
+          <span className="text-sm font-medium text-heading">Your name</span>
           <input
             name="contributorDisplayName"
             required
             placeholder="e.g. Maya"
-            className="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-zinc-500 focus:outline-none"
+            className="mt-1 w-full rounded-lg border border-input bg-surface px-3 py-2 text-sm focus:border-accent focus:outline-none"
           />
         </label>
       )}
 
       <label className="block">
-        <span className="text-sm font-medium text-zinc-700">Your email</span>
+        <span className="text-sm font-medium text-heading">Your email</span>
         <input
           name="contributorEmail"
           type="email"
           required
           placeholder="you@example.com"
-          className="mt-1 w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm focus:border-zinc-500 focus:outline-none"
+          className="mt-1 w-full rounded-lg border border-input bg-surface px-3 py-2 text-sm focus:border-accent focus:outline-none"
         />
-        <p className="mt-1.5 text-xs text-zinc-500">
+        <p className="mt-1.5 text-xs text-muted">
           Used only for moderation traceability and to let you know if this jar
           is later made public. Never shown to the creator.
         </p>
       </label>
 
-      {state.error && <p className="text-sm text-red-600">{state.error}</p>}
+      {state.error && <p className="text-sm font-medium text-heading">{state.error}</p>}
 
       <button
         type="submit"
         disabled={pending}
-        className="w-full rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-700 disabled:opacity-50"
+        className="w-full rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50"
       >
         {pending ? "Sending…" : "Add to jar"}
       </button>
     </form>
+      )}
+    </>
   );
 }

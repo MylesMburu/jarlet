@@ -1,4 +1,4 @@
-import Image from "next/image";
+"use client";
 
 export type LetterView = {
   id: string;
@@ -9,32 +9,30 @@ export type LetterView = {
   createdAt: Date;
 };
 
-export function LetterCard({ letter }: { letter: LetterView }) {
-  const isAnonymous =
-    letter.displayMode === "anonymous" || !letter.contributorDisplayName;
-  const author = isAnonymous ? "Anonymous" : letter.contributorDisplayName;
-
+export function LetterTile({
+  letter,
+  active,
+  onOpen,
+}: {
+  letter: LetterView;
+  active?: boolean;
+  onOpen: () => void;
+}) {
   return (
-    <article className="rounded-2xl border border-zinc-200 bg-white p-6">
-      <div className="flex items-center justify-between">
-        <p className="font-medium text-zinc-800">{author}</p>
-        <time className="text-xs text-zinc-400">
-          {letter.createdAt.toLocaleDateString()}
-        </time>
-      </div>
-      <p className="mt-3 whitespace-pre-wrap text-zinc-700">{letter.bodyText}</p>
-      {letter.mediaUrl && (
-        <div className="relative mt-4 aspect-[4/3] w-full overflow-hidden rounded-xl bg-zinc-100">
-          <Image
-            src={letter.mediaUrl}
-            alt="Letter attachment"
-            fill
-            sizes="(max-width: 768px) 100vw, 512px"
-            className="object-cover"
-            unoptimized
-          />
-        </div>
-      )}
-    </article>
+    <button
+      type="button"
+      aria-expanded={active}
+      aria-haspopup="dialog"
+      onClick={onOpen}
+      className="envelope relative mx-auto block h-[104px] w-full max-w-[170px] overflow-hidden rounded-xl border border-brass bg-surface text-left transition-shadow hover:shadow-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current"
+    >
+      <span className="sr-only">
+        Open letter from {letter.contributorDisplayName ?? "Anonymous"}
+      </span>
+      <span aria-hidden className="env-pocket absolute inset-x-0 bottom-0 h-1/2 bg-surface" />
+      <span aria-hidden className="env-flap absolute inset-x-0 top-0 h-1/2 border-b border-line bg-surface">
+        <span className="absolute bottom-2 left-1/2 h-2 w-2 -translate-x-1/2 rounded-full bg-heading/40" />
+      </span>
+    </button>
   );
 }

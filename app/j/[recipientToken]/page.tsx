@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { LetterCard } from "@/components/letter-card";
+import { LetterViewer } from "@/components/letter-viewer";
 import { PublicToggle } from "./public-toggle";
 
 export default async function RecipientPage({
@@ -26,9 +26,9 @@ export default async function RecipientPage({
   if (!jar) {
     return (
       <main className="flex flex-1 items-center justify-center px-4">
-        <div className="max-w-md rounded-2xl border border-zinc-200 bg-white p-8 text-center">
-          <h1 className="text-lg font-semibold text-zinc-900">Link not found</h1>
-          <p className="mt-2 text-sm text-zinc-500">
+        <div className="max-w-md rounded-2xl border border-line bg-surface p-8 text-center">
+          <h1 className="font-display font-medium text-lg text-heading">Link not found</h1>
+          <p className="mt-2 text-sm text-muted">
             This link isn&apos;t valid.
           </p>
         </div>
@@ -41,25 +41,25 @@ export default async function RecipientPage({
     : null;
 
   return (
-    <main className="flex flex-1 justify-center bg-zinc-50 px-4 py-12">
+    <main
+      data-theme="reveal"
+      className="flex flex-1 justify-center bg-page px-4 py-12"
+    >
       <div className="w-full max-w-2xl space-y-8">
         <header className="text-center">
-          <h1 className="text-2xl font-semibold text-zinc-900">{jar.title}</h1>
-          <p className="mt-1 text-sm text-zinc-500">for {jar.recipientName}</p>
+          <h1 className="font-display font-medium text-2xl text-heading">{jar.title}</h1>
+          <p className="mt-1 text-sm text-muted">for {jar.recipientName}</p>
+          <div aria-hidden className="mx-auto mt-4 h-1 w-16 rounded-full bg-amber" />
         </header>
 
         {jar.letters.length === 0 ? (
-          <div className="rounded-2xl border border-zinc-200 bg-white p-10 text-center">
-            <p className="text-sm text-zinc-500">
+          <div className="rounded-2xl border border-line bg-surface p-10 text-center">
+            <p className="text-sm text-muted">
               This jar is empty.
             </p>
           </div>
         ) : (
-          <div className="space-y-4">
-            {jar.letters.map((letter) => (
-              <LetterCard key={letter.id} letter={letter} />
-            ))}
-          </div>
+          <LetterViewer letters={jar.letters} />
         )}
 
         <PublicToggle

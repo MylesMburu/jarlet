@@ -15,16 +15,19 @@ export default async function CreatorLayout({
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-zinc-50">
-      <header className="border-b border-zinc-200 bg-white">
+    <div
+      data-theme="sealed"
+      className="flex min-h-screen flex-col bg-page"
+    >
+      <header className="border-b border-line bg-surface">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
-          <Link href="/dashboard" className="font-semibold text-zinc-900">
+          <Link href="/dashboard" className="font-semibold text-heading">
             Letter Jar
           </Link>
           <div className="flex items-center gap-4">
             <Link
               href="/jar/new"
-              className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-700"
+              className="rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90"
             >
               Create jar
             </Link>
@@ -36,7 +39,7 @@ export default async function CreatorLayout({
             >
               <button
                 type="submit"
-                className="text-sm font-medium text-zinc-500 hover:text-zinc-900"
+                className="text-sm font-medium text-muted hover:text-heading"
               >
                 Sign out
               </button>

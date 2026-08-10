@@ -1,15 +1,24 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Fraunces, Karla, Caveat } from "next/font/google";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const fraunces = Fraunces({
   subsets: ["latin"],
+  weight: "variable",
+  axes: ["opsz"],
+  variable: "--font-fraunces",
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const karla = Karla({
   subsets: ["latin"],
+  weight: ["400", "500"],
+  variable: "--font-karla",
+});
+
+const caveat = Caveat({
+  subsets: ["latin"],
+  weight: "500",
+  variable: "--font-caveat",
 });
 
 export const metadata: Metadata = {
@@ -26,7 +35,8 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      data-theme="sealed"
+      className={`${fraunces.variable} ${karla.variable} ${caveat.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">{children}</body>
     </html>
