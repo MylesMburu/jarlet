@@ -1,30 +1,40 @@
 export type MediaUpload = {
-  key: string;
   uploadUrl: string;
-  publicUrl: string;
+  uploadPreset: string;
+  uploadFolder: string;
 };
 
 /**
- * Stub for the media provider (R2/S3 presigned direct uploads).
- * Returns a fake upload URL — wire real credentials later in this file.
- * The generated key format is preserved so the real implementation
- * can drop in without changing callers.
+ * Cloudinary direct browser upload config (unsigned upload preset).
+ *
+ * The browser POSTs the raw file as multipart/form-data to `uploadUrl` with
+ * `upload_preset` and `folder` set. Cloudinary responds with JSON containing
+ * `secure_url`, which the client stores as the letter's mediaUrl.
+ *
+ * The preset must exist in the Cloudinary dashboard and allow unsigned
+ * uploads, restricted to image/gif. No API secret ever reaches the browser —
+ * only the cloud name and the non-secret preset name.
  */
 export async function requestMediaUpload(
-  fileName: string,
-  _contentType: string
+  _fileName: string,
+  contentType: string
 ): Promise<MediaUpload> {
-  const ext = (fileName.split(".").pop() ?? "").toLowerCase() || "bin";
-  const key = `letters/${crypto.randomUUID()}-${Date.now()}.${ext}`;
-  const bucket =
-    process.env.R2_BUCKET ??
-    (process.env.NODE_ENV === "production"
-      ? "letter-jar"
-      : "letter-jar-dev");
+  const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
+  const uploadPreset = process.env.CLOUDINARY_UPLOAD_PRESET;
+
+  if (!cloudName || !uploadPreset) {
+    throw new Error(
+      "Cloudinary is not configured. Set CLOUDINARY_CLOUD_NAME and CLOUDINARY_UPLOAD_PRESET."
+    );
+  }
+
+  const uploadUrl = `/v1_1/${cloudName}/${
+    contentType.startsWith("image/") ? "image" : "auto"
+  }/upload`;
 
   return {
-    key,
-    uploadUrl: `https://${bucket}.stub.local/${key}?presign=stub`,
-    publicUrl: `https://${bucket}.stub.local/${key}`,
+    uploadUrl: `https://api.cloudinary.com${uploadUrl}`,
+    uploadPreset,
+    uploadFolder: "letters",
   };
 }

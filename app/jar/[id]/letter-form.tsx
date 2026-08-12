@@ -30,10 +30,21 @@ export default function LetterForm({ inviteToken }: { inviteToken: string }) {
         }),
       });
       const data = await res.json();
-      if (!res.ok || !data?.publicUrl) {
+      if (!res.ok || !data?.uploadUrl || !data?.uploadPreset) {
         throw new Error(data.error ?? "Upload failed");
       }
-      setMediaUrl(data.publicUrl);
+
+      const fd = new FormData();
+      fd.append("file", file);
+      fd.append("upload_preset", data.uploadPreset);
+      fd.append("folder", data.uploadFolder ?? "letters");
+
+      const up = await fetch(data.uploadUrl, { method: "POST", body: fd });
+      const upData = await up.json();
+      if (!up.ok || !upData?.secure_url) {
+        throw new Error(upData?.error?.message ?? "Upload failed");
+      }
+      setMediaUrl(upData.secure_url);
     } catch {
       setMediaUrl(null);
     } finally {

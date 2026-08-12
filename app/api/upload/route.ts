@@ -13,6 +13,13 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid request body." }, { status: 400 });
   }
 
-  const upload = await requestMediaUpload(fileName, contentType);
-  return NextResponse.json(upload);
+  try {
+    const upload = await requestMediaUpload(fileName, contentType);
+    return NextResponse.json(upload);
+  } catch (error) {
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Storage is not configured." },
+      { status: 500 }
+    );
+  }
 }
