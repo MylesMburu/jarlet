@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 140" width="360" height="140">
+  <g transform="translate(0,0)">
+    <path d="M40 50 Q40 40 50 40 L90 40 Q100 40 100 50 L100 108 Q100 118 88 118 L52 118 Q40 118 40 108 Z" fill="#6E9C99"/>
+    <path d="M40 84 L100 84 L100 108 Q100 118 88 118 L52 118 Q40 118 40 108 Z" fill="#E3A857"/>
+    <rect x="44" y="30" width="52" height="16" rx="6" fill="#B8925A"/>
+    <text x="70" y="76" text-anchor="middle" font-family="'Fraunces', Georgia, serif" font-weight="700" font-size="32" fill="#2B2A33">J</text>
+    <g transform="rotate(-10 70 34)">
+      <rect x="52" y="14" width="36" height="24" rx="3" fill="#F6F0E4"/>
+      <circle cx="80" cy="20" r="4.5" fill="#7A2E38"/>
+    </g>
+  </g>
+  <text x="128" y="82" font-family="'Fraunces', Georgia, serif" font-weight="600" font-size="46" fill="#2B2A33">Jarlet</text>
+</svg>
