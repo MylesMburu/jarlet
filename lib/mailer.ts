@@ -20,6 +20,11 @@ function getTransport(): nodemailer.Transporter {
         : {}),
     });
   } else {
+    if (process.env.NODE_ENV === "production") {
+      console.warn(
+        "[mailer] SMTP_HOST is not set in production — emails are generated but NOT delivered."
+      );
+    }
     transport = nodemailer.createTransport({
       jsonTransport: true,
     });

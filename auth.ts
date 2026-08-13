@@ -50,11 +50,13 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             },
       from: process.env.EMAIL_FROM ?? "Letter Jar <no-reply@letterjar.local>",
       sendVerificationRequest({ identifier, url }) {
-        void sendEmail({
+        return sendEmail({
           to: identifier,
           subject: `Sign in to Letter Jar`,
           text: `Sign in to Letter Jar with this link:\n\n${url}\n\nIf you didn't request this, you can safely ignore this email.`,
           html: `<p>Sign in to Letter Jar with this link:</p><p><a href="${url}">${url}</a></p><p>If you didn't request this, you can safely ignore this email.</p>`,
+        }).catch((error) => {
+          console.error("[auth][email] Failed to send verification email", error);
         });
       },
     }),
