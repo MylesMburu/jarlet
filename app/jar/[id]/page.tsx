@@ -33,7 +33,8 @@ export default async function InvitePage({
       className="flex flex-1 items-center justify-center bg-page px-4 py-12"
     >
       <div className="w-full max-w-lg space-y-8">
-        <header className="text-center">
+        <header className="text-center  flex  flex-col justify-center items-center">
+          <img src="/jarlet-icon.svg" alt="" className="h-10 w-10" />
           <h1 className="font-display font-medium text-2xl text-heading">{jar.title}</h1>
           <p className="mt-1 text-sm text-muted">
             A letter jar for {jar.recipientName}

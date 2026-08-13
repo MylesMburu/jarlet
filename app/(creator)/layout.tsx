@@ -22,7 +22,7 @@ export default async function CreatorLayout({
       <header className="border-b border-line bg-surface">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
           <Link href="/dashboard" className="font-semibold text-heading">
-            Letter Jar
+            <img src="/jarlet-icon.svg" alt="" className="h-10 w-10" />
           </Link>
           <div className="flex items-center gap-4">
             <Link
