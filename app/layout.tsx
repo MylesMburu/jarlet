@@ -22,7 +22,7 @@ const caveat = Caveat({
 });
 
 export const metadata: Metadata = {
-  title: "Letter Jar",
+  title: "Jarlet",
   description:
     "Collect private letters from friends, seal them, and deliver a jar only one person can read.",
 };
