@@ -70,6 +70,7 @@ model Jar {
   inviteToken     String    @unique @default(cuid())
   recipientToken  String?   @unique
   publicSlug      String?   @unique
+  archivedAt      DateTime?
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
   letters         Letter[]

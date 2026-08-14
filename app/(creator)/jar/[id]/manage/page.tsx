@@ -4,7 +4,9 @@ import { prisma } from "@/lib/prisma";
 import { StatusBadge } from "@/components/status-badge";
 import { CopyLink } from "@/components/copy-link";
 import { JarFill } from "@/components/jar-fill";
-import { SealButton, SendButton } from "./jar-actions";
+import { SealButton, SendButton, ReopenButton, DeleteJarButton } from "./jar-actions";
+import { ArchiveJarButton, UnarchiveJarButton } from "@/components/jar-archive-button";
+import JarSettings from "./jar-settings";
 
 export const metadata = {
   title: "Manage jar",
@@ -69,6 +71,36 @@ export default async function ManageJarPage({
       </div>
 
       <div className="mt-8 space-y-6">
+        <section className="rounded-2xl border border-line bg-surface p-6">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">
+            Jar details
+          </h2>
+          <p className="mt-1 text-sm text-muted">
+            {jar.status === "open"
+              ? "Edit anything — this jar is still collecting letters."
+              : jar.status === "sealed"
+                ? "Sealed jars are locked. The only option is to reopen for more letters."
+                : "Delivered — this jar belongs to its recipient now and can't be changed."}
+          </p>
+          <div className="mt-4">
+            <JarSettings
+              jarId={jar.id}
+              editable={jar.status === "open"}
+              title={jar.title}
+              recipientName={jar.recipientName}
+              prompt={jar.prompt}
+              sealMode={jar.sealMode as "manual" | "date" | "count"}
+              sealDate={jar.sealDate ? jar.sealDate.toISOString() : null}
+              sealLetterCount={jar.sealLetterCount}
+            />
+          </div>
+          {jar.status === "sealed" && (
+            <div className="mt-4 border-t border-line pt-4">
+              <ReopenButton jarId={jar.id} />
+            </div>
+          )}
+        </section>
+
         <section className="rounded-2xl border border-line bg-surface p-6">
           <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">
             Invite contributors
@@ -148,6 +180,50 @@ export default async function ManageJarPage({
             </div>
           )}
         </section>
+
+        {jar.status === "open" ? (
+          <section className="rounded-2xl border border-line bg-surface p-6">
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">
+              Danger zone
+            </h2>
+            <p className="mt-1 text-sm text-muted">
+              Deletes the jar and everything inside it. Only available while
+              the jar is still open.
+            </p>
+            <div className="mt-4">
+              <DeleteJarButton
+                jarId={jar.id}
+                letterCount={jar._count.letters}
+              />
+            </div>
+          </section>
+        ) : jar.archivedAt ? (
+          <section className="rounded-2xl border border-line bg-surface p-6">
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">
+              Archived
+            </h2>
+            <p className="mt-1 text-sm text-muted">
+              This jar is archived — hidden from your dashboard, but its
+              invite, delivery, and public links still work.
+            </p>
+            <div className="mt-4">
+              <UnarchiveJarButton jarId={jar.id} />
+            </div>
+          </section>
+        ) : (
+          <section className="rounded-2xl border border-line bg-surface p-6">
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-muted">
+              Archive
+            </h2>
+            <p className="mt-1 text-sm text-muted">
+              Archiving hides this jar from your dashboard without deleting
+              anything. Its invite, delivery, and public links keep working.
+            </p>
+            <div className="mt-4">
+              <ArchiveJarButton jarId={jar.id} />
+            </div>
+          </section>
+        )}
       </div>
     </main>
   );

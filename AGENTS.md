@@ -29,7 +29,8 @@ to the creator before `status = delivered`.
 - **User**: id, email, name — creator accounts only.
 - **Jar**: id, creatorId, title, recipientName, sealMode (`manual` | `date` |
   `count`), sealDate, sealLetterCount, status (`open` | `sealed` |
-  `delivered`), isPublic, inviteToken, recipientToken, publicSlug (nullable).
+  `delivered`), isPublic, inviteToken, recipientToken, publicSlug (nullable),
+  archivedAt (nullable, datetime — see "Jar update, delete & archive rules").
 - **Letter**: id, jarId, contributorEmail (always stored, never shown to
   creator in normal UI), contributorDisplayName (nullable), displayMode
   (`signed` | `anonymous`), bodyText, mediaUrl (nullable), createdAt.
@@ -52,9 +53,8 @@ pages — there is no "reveal identity" feature.
 ## Stack
 
 - Next.js (App Router), Postgres via Prisma, NextAuth/Auth.js (creator-only
-  auth), Cloudinary for media (unsigned upload preset, direct uploads from the
-  browser — `secure_url` is stored as the letter's `mediaUrl`), Resend or
-  Postmark for email, deployed on Vercel.
+  auth), Cloudflare R2 or S3 for media (presigned direct uploads from
+  browser), Resend or Postmark for email, deployed on Vercel.
 
 ## Design system
 
@@ -145,6 +145,55 @@ All animations respect `prefers-reduced-motion`: staggered/looping/ambient
 motion collapses to instant-appear; brief user-triggered feedback (stamp,
 envelope open) can keep a very short, low-amplitude transition but skip
 elaborate easing.
+
+## Global layout — header & footer
+
+Applies site-wide, not just the homepage.
+
+- **Header**: minimal, quiet. Jarlet icon mark only (not the full wordmark —
+  16–24px), top-left, linking to `/`. Top-right: a single text link —
+  "Sign in" if logged out, "My jars" if the creator is authenticated. No
+  nav bar, no menu, nothing else. This exists purely so a returning creator
+  has a way back in; it should not compete with any page's own hero/content.
+- **Footer**: one muted line, e.g. "© Jarlet · Privacy". Its only real job
+  is giving contributors (who are asked for an email on the invite form) a
+  place to check what happens with their data before they submit. No link
+  farm, no social icons, no multi-column footer.
+- Both use the `sealed` token set's neutral tones (ink/brass/muted text) —
+  they're chrome, not part of either page's emotional register, so they
+  should read as quiet framing regardless of which token set the page body
+  is using.
+
+## Jar update, delete & archive rules
+
+Rules are scoped by jar `status` — not a generic CRUD form. A jar containing
+other people's letters isn't just the creator's data once contributions
+exist.
+
+**Editing:**
+- `status = open` — freely editable: title, recipientName, sealMode, and
+  the related date/count fields.
+- `status = sealed` — locked, except one explicit action: "reopen for more
+  letters" (sets status back to `open`). No silent field edits once sealed
+  — sealing already implicitly told contributors "this is final."
+- `status = delivered` — fully locked from the creator's side. It's the
+  recipient's jar now.
+
+**Deleting:**
+- `status = open` AND zero letters — hard delete, no confirmation friction
+  needed beyond a basic "are you sure."
+- `status = open` AND letters exist — hard delete allowed, but the
+  confirmation dialog must state the concrete cost, e.g. "This will
+  permanently delete N letters your friends have already written," not a
+  generic "are you sure you want to delete this jar."
+- `status = sealed` or `delivered` — no hard delete. Offer **archive**
+  instead (sets `archivedAt`, hides the jar from the default dashboard
+  view without deleting data). Reasons: a public jar's link would break for
+  contributors who were emailed it, and a delivered jar may still be in use
+  by the recipient. Archived jars stay fully functional at their existing
+  URLs — archiving only affects the creator's dashboard visibility.
+- Archived jars can be unarchived at any time; this reverses only the
+  dashboard visibility, not any lifecycle status.
 
 ## Conventions
 
