@@ -53,8 +53,9 @@ pages — there is no "reveal identity" feature.
 ## Stack
 
 - Next.js (App Router), Postgres via Prisma, NextAuth/Auth.js (creator-only
-  auth), Cloudflare R2 or S3 for media (presigned direct uploads from
-  browser), Resend or Postmark for email, deployed on Vercel.
+  auth), Cloudinary for media (unsigned upload preset, direct uploads from the
+  browser — `secure_url` is stored as the letter's `mediaUrl`), Resend or
+  Postmark for email, deployed on Vercel.
 
 ## Design system
 
