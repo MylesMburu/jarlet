@@ -18,6 +18,7 @@ export default async function PublicPage({
       isPublic: true,
       letters: {
         orderBy: { createdAt: "asc" },
+        include: { media: { orderBy: { order: "asc" } } },
       },
       _count: { select: { letters: true } },
     },

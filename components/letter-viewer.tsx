@@ -9,13 +9,8 @@ export function LetterViewer({ letters }: { letters: LetterView[] }) {
 
   useEffect(() => {
     if (!openLetter) return;
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpenLetter(null);
-    };
-    window.addEventListener("keydown", onKey);
     document.body.style.overflow = "hidden";
     return () => {
-      window.removeEventListener("keydown", onKey);
       document.body.style.overflow = "";
     };
   }, [openLetter]);
@@ -41,6 +36,12 @@ export function LetterViewer({ letters }: { letters: LetterView[] }) {
   );
 }
 
+function cloudinaryThumb(url: string): string {
+  return url.includes("/image/upload/")
+    ? url.replace("/image/upload/", "/image/upload/w_200,h_200,c_fill/")
+    : url;
+}
+
 function LetterModal({
   letter,
   onClose,
@@ -49,13 +50,25 @@ function LetterModal({
   onClose: () => void;
 }) {
   const [revealed, setRevealed] = useState(false);
+  const [lightbox, setLightbox] = useState<string | null>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
+  const media = [...letter.media].sort((a, b) => a.order - b.order);
 
   useEffect(() => {
     const raf = requestAnimationFrame(() => setRevealed(true));
     closeRef.current?.focus();
     return () => cancelAnimationFrame(raf);
   }, []);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      if (lightbox) setLightbox(null);
+      else onClose();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [lightbox, onClose]);
 
   const isAnonymous =
     letter.displayMode === "anonymous" || !letter.contributorDisplayName;
@@ -97,16 +110,26 @@ function LetterModal({
             {letter.bodyText}
           </p>
 
-          {letter.mediaUrl && (
-            <div className="relative mt-4 aspect-[4/3] w-full overflow-hidden rounded-xl border border-brass/25 bg-parchment">
-              <Image
-                src={letter.mediaUrl}
-                alt="Letter attachment"
-                fill
-                sizes="(max-width: 768px) 90vw, 448px"
-                className="object-cover"
-                unoptimized
-              />
+          {media.length > 0 && (
+            <div className="mt-4 flex flex-wrap gap-2">
+              {media.map((m) => (
+                <button
+                  key={m.id}
+                  type="button"
+                  onClick={() => setLightbox(m.url)}
+                  aria-label="Enlarge attachment"
+                  className="relative h-16 w-16 overflow-hidden rounded-lg border border-brass bg-parchment transition-transform hover:scale-105"
+                >
+                  <Image
+                    src={cloudinaryThumb(m.url)}
+                    alt="Letter attachment"
+                    fill
+                    sizes="64px"
+                    className="object-cover"
+                    unoptimized
+                  />
+                </button>
+              ))}
             </div>
           )}
         </div>
@@ -125,6 +148,34 @@ function LetterModal({
           </time>
         </div>
       </div>
+
+      {lightbox && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-6">
+          <button
+            aria-label="Close image"
+            onClick={() => setLightbox(null)}
+            className="absolute inset-0 bg-ink/80"
+          />
+          <div className="relative max-h-[85vh] max-w-[90vw]">
+            <Image
+              src={lightbox}
+              alt="Letter attachment"
+              width={1200}
+              height={900}
+              sizes="90vw"
+              className="max-h-[85vh] w-auto rounded-lg object-contain"
+              unoptimized
+            />
+            <button
+              type="button"
+              onClick={() => setLightbox(null)}
+              className="absolute -right-3 -top-3 flex h-8 w-8 items-center justify-center rounded-full border border-brass bg-surface text-sm text-heading shadow hover:bg-parchment"
+            >
+              ×
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

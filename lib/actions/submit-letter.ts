@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
+import { MAX_MEDIA_PER_LETTER } from "@/lib/storage";
 
 export type SubmitLetterState = {
   error?: string;
@@ -9,6 +10,7 @@ export type SubmitLetterState = {
 };
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const URL_RE = /^https?:\/\/\S+$/;
 
 export async function submitLetter(
   inviteToken: string,
@@ -21,7 +23,30 @@ export async function submitLetter(
     formData.get("contributorDisplayName") ?? ""
   ).trim();
   const displayMode = String(formData.get("displayMode") ?? "signed");
-  const mediaUrl = String(formData.get("mediaUrl") ?? "").trim() || null;
+
+  let mediaUrls: string[] = [];
+  const rawMedia = String(formData.get("mediaUrls") ?? "").trim();
+  if (rawMedia) {
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(rawMedia);
+    } catch {
+      return { error: "Invalid attachment data." };
+    }
+    if (!Array.isArray(parsed)) {
+      return { error: "Invalid attachment data." };
+    }
+    mediaUrls = parsed
+      .filter((u): u is string => typeof u === "string")
+      .map((u) => u.trim())
+      .filter((u) => u.length > 0);
+    if (mediaUrls.length > MAX_MEDIA_PER_LETTER) {
+      return { error: `You can attach at most ${MAX_MEDIA_PER_LETTER} images or gifs.` };
+    }
+    if (mediaUrls.some((u) => !URL_RE.test(u))) {
+      return { error: "Invalid attachment URL." };
+    }
+  }
 
   if (!bodyText) {
     return { error: "Please write a letter before sending." };
@@ -59,7 +84,9 @@ export async function submitLetter(
         displayMode === "signed" ? contributorDisplayName : null,
       displayMode,
       bodyText,
-      mediaUrl,
+      media: {
+        create: mediaUrls.map((url, order) => ({ url, order })),
+      },
     },
   });
 

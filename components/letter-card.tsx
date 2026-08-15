@@ -5,7 +5,7 @@ export type LetterView = {
   contributorDisplayName: string | null;
   displayMode: string;
   bodyText: string;
-  mediaUrl: string | null;
+  media: { id: string; url: string; order: number }[];
   createdAt: Date;
 };
 

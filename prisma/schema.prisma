@@ -77,13 +77,23 @@ model Jar {
 }
 
 model Letter {
-  id                     String   @id @default(cuid())
+  id                     String        @id @default(cuid())
   jarId                  String
-  jar                    Jar      @relation(fields: [jarId], references: [id], onDelete: Cascade)
+  jar                    Jar           @relation(fields: [jarId], references: [id], onDelete: Cascade)
   contributorEmail       String
   contributorDisplayName String?
-  displayMode            String   @default("signed") // "signed" | "anonymous"
-  bodyText               String   @db.Text
-  mediaUrl               String?
-  createdAt              DateTime @default(now())
+  displayMode            String        @default("signed") // "signed" | "anonymous"
+  bodyText               String        @db.Text
+  createdAt              DateTime      @default(now())
+  media                  LetterMedia[]
+}
+
+model LetterMedia {
+  id       String @id @default(cuid())
+  letterId String
+  letter   Letter @relation(fields: [letterId], references: [id], onDelete: Cascade)
+  url      String
+  order    Int
+
+  @@index([letterId])
 }

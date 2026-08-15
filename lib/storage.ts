@@ -1,3 +1,5 @@
+export const MAX_MEDIA_PER_LETTER = 4;
+
 export type MediaUpload = {
   uploadUrl: string;
   uploadPreset: string;
@@ -9,7 +11,8 @@ export type MediaUpload = {
  *
  * The browser POSTs the raw file as multipart/form-data to `uploadUrl` with
  * `upload_preset` and `folder` set. Cloudinary responds with JSON containing
- * `secure_url`, which the client stores as the letter's mediaUrl.
+ * `secure_url`, which the client stores as that `LetterMedia` row's `url`.
+ * May be called once per file, up to `MAX_MEDIA_PER_LETTER` per letter.
  *
  * The preset must exist in the Cloudinary dashboard and allow unsigned
  * uploads, restricted to image/gif. No API secret ever reaches the browser —

@@ -19,6 +19,7 @@ export default async function RecipientPage({
       status: true,
       letters: {
         orderBy: { createdAt: "asc" },
+        include: { media: { orderBy: { order: "asc" } } },
       },
     },
   });

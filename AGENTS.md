@@ -30,10 +30,15 @@ to the creator before `status = delivered`.
 - **Jar**: id, creatorId, title, recipientName, sealMode (`manual` | `date` |
   `count`), sealDate, sealLetterCount, status (`open` | `sealed` |
   `delivered`), isPublic, inviteToken, recipientToken, publicSlug (nullable),
-  archivedAt (nullable, datetime — see "Jar update, delete & archive rules").
+  archivedAt (nullable, datetime — see "Jar update, delete & archive rules"),
+  firstOpenedAt (nullable, datetime — see "Preventing creator self-access").
 - **Letter**: id, jarId, contributorEmail (always stored, never shown to
   creator in normal UI), contributorDisplayName (nullable), displayMode
-  (`signed` | `anonymous`), bodyText, mediaUrl (nullable), createdAt.
+  (`signed` | `anonymous`), bodyText, createdAt.
+- **LetterMedia**: id, letterId, url, order (int, for display sequence).
+  A letter can have 0–`MAX_MEDIA_PER_LETTER` (4) images/gifs — see "Media
+  uploads" for upload flow and rendering rules. Replaces the old single
+  `mediaUrl` field on Letter.
 
 Anonymous letters stay anonymous everywhere permanently, including on public
 pages — there is no "reveal identity" feature.
@@ -53,8 +58,8 @@ pages — there is no "reveal identity" feature.
 ## Stack
 
 - Next.js (App Router), Postgres via Prisma, NextAuth/Auth.js (creator-only
-  auth), Cloudinary for media (unsigned upload preset, direct uploads from the
-  browser — `secure_url` is stored as the letter's `mediaUrl`), Resend or
+  auth), Cloudinary for media (unsigned upload preset, direct uploads from
+  the browser — `secure_url` is stored per `LetterMedia` row), Resend or
   Postmark for email, deployed on Vercel.
 
 ## Design system
@@ -195,6 +200,75 @@ exist.
   URLs — archiving only affects the creator's dashboard visibility.
 - Archived jars can be unarchived at any time; this reverses only the
   dashboard visibility, not any lifecycle status.
+
+## Preventing creator self-access
+
+Known gap: since the creator generates the recipient link themselves, they
+can technically open it and read all letters before/without the actual
+recipient. There is no way to cryptographically prevent this in a link-
+based, no-account-for-recipient system — the fix is to close the realistic
+case (casual/careless viewing) and make the remaining edge case
+transparent, not to chase perfect prevention.
+
+Two mechanisms, used together:
+
+1. **Session-gate the creator's own account on the recipient/public
+   routes.** On `j/[recipientToken]` and `p/[publicSlug]`, check server-side
+   whether the current session belongs to that jar's `creatorId`. If so,
+   show a blocked state instead of letter content — brief, friendly copy
+   explaining that the view is hidden to protect the surprise, not a
+   generic error. Anyone without that session (the real recipient,
+   contributors, a logged-out browser, incognito) sees the jar normally.
+   This does not stop someone willing to log out or use a private window —
+   it stops the realistic failure mode of casually re-clicking a link
+   while still signed in.
+2. **Record `firstOpenedAt`** the first time the recipient link is
+   accessed by anyone, regardless of who. Do not block subsequent opens or
+   treat this as single-use — just store the timestamp (and optionally a
+   coarse region from IP, nothing more identifying) and surface it plainly
+   on the jar, e.g. "first opened [date]." This doesn't prevent early
+   peeking, but makes it visible after the fact, which is the honest
+   tradeoff for a link-based system.
+
+Do not build recipient-email-required delivery or any flow that adds
+friction for the recipient — this was explicitly ruled out. These two
+mechanisms are the agreed-upon scope for this problem.
+
+## Media uploads
+
+Letters support multiple images/gifs, not just one.
+
+- **Cap**: `MAX_MEDIA_PER_LETTER = 4`. Enforce both client-side (disable
+  further selection past 4) and server-side (reject extra `LetterMedia`
+  rows tied to a letter that already has 4).
+- **Upload mechanism**: Cloudinary unsigned upload preset, uploaded direct
+  from the browser (no server round-trip for the file bytes). On success,
+  Cloudinary returns a `secure_url`, which becomes that `LetterMedia` row's
+  `url`. The letter-submission API only ever receives URLs, never raw
+  files — the browser talks to Cloudinary directly for each image.
+- **Upload flow (contributor form)**: each selected file uploads to
+  Cloudinary immediately on selection (not deferred to final submit). As
+  each upload completes, show a small thumbnail preview in a strip/grid on
+  the form — this is the "successful upload" confirmation the contributor
+  needs, distinct from the final letter-submission jar-drop animation.
+  Each thumbnail gets a small remove (×) control so the contributor can
+  drop one before submitting (removing client-side is enough; no need to
+  delete from Cloudinary unless it was actually attached to a submitted
+  letter). Show a lightweight in-progress state (spinner or skeleton) on a
+  thumbnail slot while its upload is still in flight, and a clear error
+  state (with retry) if one fails — don't let a single failed upload
+  silently block or corrupt the others.
+- **Rendering (opened letter — recipient/public view)**: multiple images
+  render as a small horizontal thumbnail row below the letter text, each
+  roughly square, `brass`-bordered, consistent with the envelope's visual
+  language. Use Cloudinary's URL-based transformations for thumbnail sizing
+  (e.g. append `w_200,h_200,c_fill` to the `secure_url`) rather than
+  shipping full-resolution images into a small thumbnail slot. Tapping a
+  thumbnail opens the full-resolution image in a simple lightbox/enlarged
+  view over the letter modal. Images stay visually secondary to the
+  letter text — modest combined footprint, not a full-bleed gallery.
+- Order of images follows the `order` field, which should just reflect
+  upload order — no manual reordering UI needed for v1.
 
 ## Conventions
 
