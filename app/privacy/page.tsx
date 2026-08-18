@@ -37,6 +37,14 @@ export default function PrivacyPage() {
         Creator accounts sign in with an email magic link or Google. Letter
         contents are not readable on the dashboard before delivery.
       </p>
+
+      <h2 className="mt-8 text-sm font-semibold text-heading">Analytics</h2>
+      <p className="mt-2">
+        This site uses Google Analytics to see aggregate trends in how visitors
+        reach and use it. Analytics collects page views and rough location, not
+        the text of any letter. You can opt out with a browser-level
+        &ldquo;Do Not Track&rdquo; or ad-blocking setting.
+      </p>
     </main>
   );
 }
