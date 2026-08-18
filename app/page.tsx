@@ -56,6 +56,10 @@ export default async function Home() {
             className="transition-colors hover:text-heading"
           >
             Privacy
+          </Link>{" "}
+          ·{" "}
+          <Link href="/faq" className="transition-colors hover:text-heading">
+            FAQ
           </Link>
         </p>
       </footer>
