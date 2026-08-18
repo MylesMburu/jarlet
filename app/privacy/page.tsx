@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import Link from "next/link";
+import { SiteHeader } from "@/components/site-header";
 
 export const metadata: Metadata = {
   title: "Privacy · Letter Jar",
@@ -6,7 +8,16 @@ export const metadata: Metadata = {
 
 export default function PrivacyPage() {
   return (
-    <main className="mx-auto max-w-2xl px-6 py-16 text-sm leading-relaxed text-body">
+    <div className="flex min-h-screen flex-col bg-page">
+      <SiteHeader>
+        <Link
+          href="/"
+          className="text-sm font-medium text-muted transition-colors hover:text-heading"
+        >
+          Home
+        </Link>
+      </SiteHeader>
+      <main className="mx-auto max-w-2xl px-6 py-16 text-sm leading-relaxed text-body">
       <h1 className="font-display text-2xl font-medium text-heading">
         Privacy
       </h1>
@@ -45,6 +56,7 @@ export default function PrivacyPage() {
         the text of any letter. You can opt out with a browser-level
         &ldquo;Do Not Track&rdquo; or ad-blocking setting.
       </p>
-    </main>
+      </main>
+    </div>
   );
 }

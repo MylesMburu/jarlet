@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import Link from "next/link";
+import { SiteHeader } from "@/components/site-header";
 
 export const metadata: Metadata = {
   title: "FAQ · Letter Jar",
@@ -6,7 +8,16 @@ export const metadata: Metadata = {
 
 export default function FaqPage() {
   return (
-    <main className="mx-auto max-w-2xl px-6 py-16 text-sm leading-relaxed text-body">
+    <div className="flex min-h-screen flex-col bg-page">
+      <SiteHeader>
+        <Link
+          href="/"
+          className="text-sm font-medium text-muted transition-colors hover:text-heading"
+        >
+          Home
+        </Link>
+      </SiteHeader>
+      <main className="mx-auto max-w-2xl px-6 py-16 text-sm leading-relaxed text-body">
       <h1 className="font-display text-2xl font-medium text-heading">FAQ</h1>
 
       <h2 className="mt-8 text-sm font-semibold text-heading">
@@ -112,6 +123,7 @@ export default function FaqPage() {
         already written. Once it&apos;s sealed or delivered, you can archive it
         instead — it stays live at its link but is hidden from your dashboard.
       </p>
-    </main>
+      </main>
+    </div>
   );
 }

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { auth } from "@/auth";
 import { SealCta } from "@/components/seal-cta";
 import { JarDrop } from "@/components/jar-drop";
+import { SiteHeader } from "@/components/site-header";
 
 export default async function Home() {
   const session = await auth();
@@ -9,11 +10,7 @@ export default async function Home() {
 
   return (
     <div className="flex min-h-screen flex-col bg-page">
-      <header className="mx-auto flex w-full max-w-5xl items-center justify-between px-6 py-5">
-        <Link href="/" aria-label="Letter Jar home">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/jarlet-icon.svg" alt="Jarlet Icon" className="h-10 w-10" />
-        </Link>
+      <SiteHeader>
         {isAuthed ? (
           <Link
             href="/dashboard"
@@ -29,7 +26,7 @@ export default async function Home() {
             Sign in
           </Link>
         )}
-      </header>
+      </SiteHeader>
 
       <main className="flex flex-1 items-center justify-center px-4">
         <div className="flex w-full max-w-2xl flex-col items-center gap-6 py-24 text-center">
