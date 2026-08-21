@@ -1,20 +1,117 @@
 "use client";
 
-import { useActionState, useState, useEffect } from "react";
+import { useActionState, useEffect, useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
-import { createJar, type SealMode } from "@/lib/actions/create-jar";
+import { createJar, createJarFromDraft } from "@/lib/actions/create-jar";
+import { signInUrl } from "@/lib/callback-url";
+import {
+  clearDraftJar,
+  emptyDraftJar,
+  getDraftJarSnapshot,
+  subscribeDraftJar,
+  writeDraftJar,
+  type DraftJar,
+  type SealMode,
+} from "@/lib/draft-jar";
 import { cn } from "@/lib/utils";
 
-export default function CreateJarForm() {
+const UNLOADED = "unloaded" as const;
+type DraftSnapshot = DraftJar | null | typeof UNLOADED;
+
+let autoCreateInFlight = false;
+
+function getClientDraft(): DraftSnapshot {
+  return getDraftJarSnapshot();
+}
+
+function getServerDraft(): DraftSnapshot {
+  return UNLOADED;
+}
+
+export default function CreateJarForm({
+  isAuthenticated,
+}: {
+  isAuthenticated: boolean;
+}) {
   const router = useRouter();
-  const [sealMode, setSealMode] = useState<SealMode>("manual");
+  const [override, setOverride] = useState<DraftJar | null>(null);
+  const [localError, setLocalError] = useState<string | null>(null);
+  const [autoCreateFailed, setAutoCreateFailed] = useState(false);
   const [state, formAction, pending] = useActionState(createJar, {});
+  const snapshot = useSyncExternalStore(
+    subscribeDraftJar,
+    getClientDraft,
+    getServerDraft
+  );
+
+  const loaded = snapshot !== UNLOADED;
+  const storedDraft = loaded ? snapshot : null;
+  const values = override ?? storedDraft ?? emptyDraftJar;
+  const autoCreating =
+    isAuthenticated &&
+    !autoCreateFailed &&
+    loaded &&
+    (storedDraft !== null || autoCreateInFlight);
 
   useEffect(() => {
     if (state.jarId) {
+      clearDraftJar();
       router.push(`/jar/${state.jarId}/manage`);
     }
   }, [state.jarId, router]);
+
+  useEffect(() => {
+    if (
+      !isAuthenticated ||
+      autoCreateFailed ||
+      !storedDraft ||
+      autoCreateInFlight
+    ) {
+      return;
+    }
+
+    autoCreateInFlight = true;
+    const draft = storedDraft;
+    clearDraftJar();
+
+    void (async () => {
+      try {
+        const result = await createJarFromDraft(draft);
+        if (result.jarId) {
+          clearDraftJar();
+          router.push(`/jar/${result.jarId}/manage`);
+          return;
+        }
+        writeDraftJar(draft);
+        setOverride(draft);
+        setLocalError(
+          result.error ?? "Could not create the jar. Please try again."
+        );
+        setAutoCreateFailed(true);
+      } catch {
+        writeDraftJar(draft);
+        setOverride(draft);
+        setLocalError("Could not create the jar. Please try again.");
+        setAutoCreateFailed(true);
+      } finally {
+        autoCreateInFlight = false;
+      }
+    })();
+  }, [isAuthenticated, autoCreateFailed, storedDraft, router]);
+
+  function update<K extends keyof DraftJar>(key: K, value: DraftJar[K]) {
+    setOverride((current) => ({
+      ...(current ?? values),
+      [key]: value,
+    }));
+  }
+
+  function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    if (isAuthenticated) return;
+    event.preventDefault();
+    writeDraftJar(values);
+    router.push(signInUrl("/jar/new"));
+  }
 
   const sealModes: { value: SealMode; label: string; hint: string }[] = [
     { value: "manual", label: "Manual", hint: "You seal it whenever you're ready" },
@@ -22,13 +119,25 @@ export default function CreateJarForm() {
     { value: "count", label: "At a letter count", hint: "Auto-seal once N letters arrive" },
   ];
 
+  if (!loaded || autoCreating) {
+    return (
+      <p className="text-sm text-muted">
+        {autoCreating ? "Creating your jar…" : "Loading…"}
+      </p>
+    );
+  }
+
+  const error = state.error || localError;
+
   return (
-    <form action={formAction} className="space-y-6">
+    <form action={formAction} onSubmit={handleSubmit} className="space-y-6">
       <label className="block">
         <span className="text-sm font-medium text-heading">Title</span>
         <input
           name="title"
           required
+          value={values.title}
+          onChange={(event) => update("title", event.target.value)}
           placeholder="e.g. Message to Max on graduation"
           className="mt-1 w-full rounded-lg border border-input bg-surface px-3 py-2 text-sm focus:border-accent focus:outline-none"
         />
@@ -39,6 +148,8 @@ export default function CreateJarForm() {
         <input
           name="recipientName"
           required
+          value={values.recipientName}
+          onChange={(event) => update("recipientName", event.target.value)}
           placeholder="Who is this jar for?"
           className="mt-1 w-full rounded-lg border border-input bg-surface px-3 py-2 text-sm focus:border-accent focus:outline-none"
         />
@@ -52,6 +163,8 @@ export default function CreateJarForm() {
         <textarea
           name="prompt"
           rows={3}
+          value={values.prompt}
+          onChange={(event) => update("prompt", event.target.value)}
           placeholder="e.g. Share your favorite memory from high school"
           className="mt-1 w-full rounded-lg border border-input bg-surface px-3 py-2 text-sm focus:border-accent focus:outline-none"
         />
@@ -65,7 +178,7 @@ export default function CreateJarForm() {
               key={mode.value}
               className={cn(
                 "cursor-pointer rounded-lg border p-3 transition-colors",
-                sealMode === mode.value
+                values.sealMode === mode.value
                   ? "border-accent bg-accent/5"
                   : "border-line bg-surface hover:border-input"
               )}
@@ -74,8 +187,8 @@ export default function CreateJarForm() {
                 type="radio"
                 name="sealMode"
                 value={mode.value}
-                checked={sealMode === mode.value}
-                onChange={() => setSealMode(mode.value)}
+                checked={values.sealMode === mode.value}
+                onChange={() => update("sealMode", mode.value)}
                 className="sr-only"
               />
               <span className="block text-sm font-medium text-heading">
@@ -89,19 +202,21 @@ export default function CreateJarForm() {
         </div>
       </fieldset>
 
-      {sealMode === "date" && (
+      {values.sealMode === "date" && (
         <label className="block">
           <span className="text-sm font-medium text-heading">Seal date</span>
           <input
             name="sealDate"
             type="datetime-local"
             required
+            value={values.sealDate}
+            onChange={(event) => update("sealDate", event.target.value)}
             className="mt-1 w-full rounded-lg border border-input bg-surface px-3 py-2 text-sm focus:border-accent focus:outline-none"
           />
         </label>
       )}
 
-      {sealMode === "count" && (
+      {values.sealMode === "count" && (
         <label className="block">
           <span className="text-sm font-medium text-heading">
             Seal at letter count
@@ -111,23 +226,30 @@ export default function CreateJarForm() {
             type="number"
             min={1}
             required
+            value={values.sealLetterCount}
+            onChange={(event) => update("sealLetterCount", event.target.value)}
             placeholder="e.g. 10"
             className="mt-1 w-full rounded-lg border border-input bg-surface px-3 py-2 text-sm focus:border-accent focus:outline-none"
           />
         </label>
       )}
 
-      {state.error && (
-        <p className="text-sm font-medium text-heading">{state.error}</p>
+      {error && (
+        <p className="text-sm font-medium text-heading">{error}</p>
       )}
 
-      <button
-        type="submit"
-        disabled={pending}
-        className="w-full rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50"
-      >
-        {pending ? "Creating…" : "Create jar"}
-      </button>
+      <div className="space-y-2">
+        {!isAuthenticated && (
+          <p className="text-sm text-muted">You&apos;ll sign in to save this jar.</p>
+        )}
+        <button
+          type="submit"
+          disabled={pending}
+          className="w-full rounded-lg bg-accent px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+        >
+          {pending ? "Creating…" : "Create jar"}
+        </button>
+      </div>
     </form>
   );
 }

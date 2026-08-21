@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { StatusBadge } from "@/components/status-badge";
@@ -12,15 +13,16 @@ export const metadata = {
 
 export default async function DashboardPage() {
   const session = await auth();
+  if (!session?.user?.id) redirect("/auth/signin");
 
   const jars = await prisma.jar.findMany({
-    where: { creatorId: session!.user!.id, archivedAt: null },
+    where: { creatorId: session.user.id, archivedAt: null },
     orderBy: { createdAt: "desc" },
     include: { _count: { select: { letters: true } } },
   });
 
   const archivedJars = await prisma.jar.findMany({
-    where: { creatorId: session!.user!.id, archivedAt: { not: null } },
+    where: { creatorId: session.user.id, archivedAt: { not: null } },
     orderBy: { archivedAt: "desc" },
     include: { _count: { select: { letters: true } } },
   });

@@ -1,13 +1,20 @@
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
+import { sanitizeCallbackUrl } from "@/lib/callback-url";
 import SignInForm from "./sign-in-form";
 
-export default async function SignInPage() {
+export default async function SignInPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ callbackUrl?: string | string[] }>;
+}) {
   const session = await auth();
+  const params = await searchParams;
+  const callbackUrl = sanitizeCallbackUrl(params.callbackUrl);
 
   if (session?.user) {
-    redirect("/dashboard");
+    redirect(callbackUrl);
   }
 
   return (
@@ -18,7 +25,7 @@ export default async function SignInPage() {
           Creator accounts only. We&apos;ll email you a magic link — no password needed.
         </p>
         <Suspense fallback={null}>
-          <SignInForm />
+          <SignInForm callbackUrl={callbackUrl} />
         </Suspense>
       </div>
     </main>

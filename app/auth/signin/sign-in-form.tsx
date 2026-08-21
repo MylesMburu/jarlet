@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { signIn } from "next-auth/react";
 
-export default function SignInForm() {
+export default function SignInForm({ callbackUrl }: { callbackUrl: string }) {
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<"idle" | "sending" | "sent" | "error">(
     "idle"
@@ -12,10 +12,13 @@ export default function SignInForm() {
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setStatus("sending");
+    // Auth.js v5 client prefers `redirectTo`; it is posted to the server as
+    // `callbackUrl` and baked into the magic-link redirect.
     const result = await signIn("nodemailer", {
       email,
       redirect: false,
-      callbackUrl: "/dashboard",
+      redirectTo: callbackUrl,
+      callbackUrl,
     });
     if (result?.error) {
       setStatus("error");

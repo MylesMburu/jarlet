@@ -270,6 +270,37 @@ Letters support multiple images/gifs, not just one.
 - Order of images follows the `order` field, which should just reflect
   upload order — no manual reordering UI needed for v1.
 
+## Jar creation — deferred sign-in
+
+`(creator)/jar/new` no longer requires auth to load or fill out. Only the
+final "Create jar" action requires sign-in. Goal: reduce bounce from
+hitting a login wall before someone's invested any time in the form.
+
+- **Draft storage**: form state (title, recipientName, sealMode, and
+  related date/count fields) is held in `localStorage` while unauthenticated
+  — no server-side draft, no temp DB row. This is a deliberate simplicity
+  choice: an abandoned draft just vanishes with the browser tab, nothing to
+  clean up.
+- **Flow**: user fills the form freely, no auth check on this route. On
+  clicking "Create jar," check session client-side: if authenticated,
+  create the jar immediately as normal. If not, save the current form state
+  to `localStorage` and redirect to sign-in with a `callbackUrl` back to
+  `jar/new`.
+- **Resuming after sign-in**: on return to `jar/new` post-auth, check for a
+  saved draft in `localStorage` on mount. If present and the user is now
+  authenticated, immediately submit it to create the jar and redirect
+  straight to `(creator)/jar/[id]/manage` — do NOT re-show the empty or
+  re-filled form and make them click "Create jar" again. Clear the draft
+  from `localStorage` once the jar is successfully created.
+- **Microcopy**: directly above/beside the "Create jar" button (not
+  earlier in the form), a small muted line: "You'll sign in to save this
+  jar." Keeps the ask honest without gating anything before it's earned.
+- **Known limitation, accepted as out of scope**: if the user requests a
+  magic-link email and opens it in a different browser/device than where
+  they filled the form, the `localStorage` draft won't be there — they'll
+  land on an empty `jar/new` form post-auth. Acceptable tradeoff for
+  simplicity; not building cross-device draft sync.
+
 ## Conventions
 
 - Route groups: `(creator)/dashboard`, `(creator)/jar/new`,
