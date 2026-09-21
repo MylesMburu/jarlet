@@ -3,6 +3,7 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { StatusBadge } from "@/components/status-badge";
 import { CopyLink } from "@/components/copy-link";
+import { ShareQr } from "@/components/share-qr";
 import { JarFill } from "@/components/jar-fill";
 import { SealButton, SendButton, ReopenButton, DeleteJarButton } from "./jar-actions";
 import { ArchiveJarButton, UnarchiveJarButton } from "@/components/jar-archive-button";
@@ -115,6 +116,11 @@ export default async function ManageJarPage({
           ) : (
             <div className="mt-3">
               <CopyLink url={inviteUrl} />
+              <ShareQr
+                url={inviteUrl}
+                caption="Scan to write a letter"
+                filename="jarlet-invite-qr.png"
+              />
             </div>
           )}
         </section>
@@ -177,6 +183,11 @@ export default async function ManageJarPage({
                 Recipient link:
               </p>
               <CopyLink url={recipientUrl} />
+              <ShareQr
+                url={recipientUrl}
+                caption="Scan to open the jar"
+                filename="jarlet-recipient-qr.png"
+              />
             </div>
           )}
         </section>
